@@ -1,5 +1,23 @@
 from tkcalendar import Calendar
 import customtkinter as ctk
+import os
+from tkinter import messagebox
+
+# Main directory where property folders are stored
+invoice_directory = r"C:\Users\oscar\OneDrive\Oscar\Properties"
+
+# List of properties and their respective folders
+properties = {
+    "3175 Seminole Ave, SouthGate Property": "3175 Seminole Ave, SouthGate Property",
+    "3306 Seminole Ave, Lynwood Property": "3306 Seminole Ave, Lynwood Property",
+    "10755 State St, Lynwood Property": "10755 State St, Lynwood Property",
+    "10756 State St, Lynwood Property": "10756 State St, Lynwood Property",
+    "10757 State St, Lynwood Property": "10757 State St, Lynwood Property",
+    "10974 Lou Dillon Ave, Los Angeles Property": "10974 Lou Dillon Ave, Los Angeles Property"
+}
+
+# Extract the property names (keys) as a list
+property_names = list(properties.keys())
 
 class PropertyApp(ctk.CTk):
     def __init__(self):
@@ -19,16 +37,16 @@ class PropertyApp(ctk.CTk):
 
         # Property Selection (left)
         property_label = ctk.CTkLabel(main_frame, text="Select Property", font=("Arial", 16))
-        property_label.grid(row=0, column=0, padx=20, pady=20, sticky="w")  # Use small positive pady
+        property_label.grid(row=0, column=0, padx=20, pady=20, sticky="w")
 
-        self.property_combo = ctk.CTkComboBox(main_frame, values=["Property 1", "Property 2", "Property 3"])
-        self.property_combo.grid(row=1, column=0, padx=20, pady=0, sticky="n")  
+        self.property_combo = ctk.CTkComboBox(main_frame, values=property_names, command=self.on_property_select)
+        self.property_combo.grid(row=1, column=0, padx=20, pady=0, sticky="n")
 
         # Tenant Selection (left)
         tenant_label = ctk.CTkLabel(main_frame, text="Select Tenant", font=("Arial", 16))
         tenant_label.grid(row=2, column=0, padx=20, pady=0, sticky="w")
 
-        self.tenant_combo = ctk.CTkComboBox(main_frame, values=["Tenant 1", "Tenant 2", "Tenant 3"])
+        self.tenant_combo = ctk.CTkComboBox(main_frame, values=["Select a property first"])
         self.tenant_combo.grid(row=3, column=0, padx=20, pady=0, sticky="n")
 
         # Billing Date (right)
@@ -52,6 +70,34 @@ class PropertyApp(ctk.CTk):
         print("Property:", self.property_combo.get())
         print("Tenant:", self.tenant_combo.get())
         print("Billing Date:", self.cal.get_date())
+
+    def on_property_select(self, event=None):
+        """Handles property selection event and updates the tenant list."""
+        selected_property = self.property_combo.get()
+        if selected_property:
+            tenant_folders = self.find_tenants(properties[selected_property])
+            if tenant_folders:
+                # Update tenant combo box with the found tenant folders
+                self.tenant_combo.configure(values=tenant_folders)
+            else:
+                # No tenants found
+                self.tenant_combo.configure(values=["No tenants found"])
+                messagebox.showinfo("No Tenants Found", f"No tenants found for {selected_property}.")
+
+    # Function to find tenant folders in the 'tenants' subfolder of the specified property
+    def find_tenants(self, property_folder):
+        tenants = []
+        tenants_path = os.path.join(invoice_directory, property_folder, "tenants")  # Construct the full path to the 'tenants' folder
+
+        if os.path.exists(tenants_path):
+            for folder_name in os.listdir(tenants_path):
+                tenant_path = os.path.join(tenants_path, folder_name)
+                if os.path.isdir(tenant_path):  # Ensure it is a directory (tenant folder)
+                    tenants.append(folder_name)
+        else:
+            messagebox.showerror("Folder Not Found", f"The 'tenants' folder for {property_folder} was not found.")
+    
+        return tenants
 
 if __name__ == "__main__":
     app = PropertyApp()
