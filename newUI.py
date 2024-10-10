@@ -40,6 +40,7 @@ class PropertyApp(ctk.CTk):
         property_label.grid(row=0, column=0, padx=20, pady=20, sticky="w")
 
         self.property_combo = ctk.CTkComboBox(main_frame, values=property_names, command=self.on_property_select)
+        self.property_combo.set("Select Property")
         self.property_combo.grid(row=1, column=0, padx=20, pady=0, sticky="n")
 
         # Tenant Selection (left)
