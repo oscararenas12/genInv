@@ -40,6 +40,7 @@ class PropertyApp(ctk.CTk):
         property_label.grid(row=0, column=0, padx=20, pady=20, sticky="w")
 
         self.property_combo = ctk.CTkComboBox(main_frame, values=property_names, command=self.on_property_select)
+        self.property_combo.set("Select Property")
         self.property_combo.grid(row=1, column=0, padx=20, pady=0, sticky="n")
 
         # Tenant Selection (left)
@@ -76,6 +77,9 @@ class PropertyApp(ctk.CTk):
         selected_property = self.property_combo.get()
         if selected_property:
             tenant_folders = self.find_tenants(properties[selected_property])
+            
+            # Reset tenant selection
+            self.tenant_combo.set("Select Tenant")  # Clear current selection
             if tenant_folders:
                 # Update tenant combo box with the found tenant folders
                 self.tenant_combo.configure(values=tenant_folders)
@@ -83,6 +87,8 @@ class PropertyApp(ctk.CTk):
                 # No tenants found
                 self.tenant_combo.configure(values=["No tenants found"])
                 messagebox.showinfo("No Tenants Found", f"No tenants found for {selected_property}.")
+        else:
+            self.tenant_combo.configure(values=["Select a property first"])
 
     # Function to find tenant folders in the 'tenants' subfolder of the specified property
     def find_tenants(self, property_folder):
