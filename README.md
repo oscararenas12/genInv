@@ -34,3 +34,13 @@ Lastly, he sees that the date is automatically set for the next billing period, 
 *Use Case 4:* Invoice Generator Button 
 
 -   In the background, the program will retrieve information (PDF files as invoices) from the directory where I’ve formatted the file paths.
+
+
+
+
+
+**Commands to Run Code**
+
+`python home_page.py`
+
+`python -m unittest test_home_page.py`
