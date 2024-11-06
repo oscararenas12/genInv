@@ -4,6 +4,7 @@ import os
 from tkinter import messagebox
 import json
 from tkinter import Menu
+import logging
 
 # Main directory where property folders are stored
 invoice_directory = r"C:\Users\oscar\OneDrive\Oscar\Properties"
@@ -94,6 +95,11 @@ class PropertyApp(ctk.CTk):
         print("Property:", self.property_combo.get())
         print("Tenant:", self.tenant_combo.get())
         print("Billing Date:", self.cal.get_date())
+
+        # Log the submission details, mainly for debugging purposes
+        logging.info(f"Property: {self.property_combo.get()}")
+        logging.info(f"Tenant: {self.tenant_combo.get()}")
+        logging.info(f"Billing Date: {self.cal.get_date()}")
 
     def on_property_select(self, event=None):
         """Handles property selection event and updates the tenant list."""
