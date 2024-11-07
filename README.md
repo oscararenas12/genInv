@@ -6,7 +6,7 @@
 
 `pip install customtkinter`
 
-**Test Driven Development Story approach:**
+**General Test Driven Development Story approach:**
 
 Oscar opens a new desktop app called genInv, designed to automatically generate invoices without manual input. The app presents him with three key options: selecting a property, a tenant, and a billing date. 
 
@@ -26,7 +26,7 @@ Lastly, he sees that the date is automatically set for the next billing period, 
 -   Ability to set a default tenant
 -   Default will stay the same until user want to change it
 
-*Use Case 3:* User selects a data
+*Use Case 3:* User selects a date
 
 -   The date will automatically be set to the next month, as the invoice is intended for the upcoming billing period.
 -   Users can change date if necessary. 
@@ -34,13 +34,12 @@ Lastly, he sees that the date is automatically set for the next billing period, 
 *Use Case 4:* Invoice Generator Button 
 
 -   In the background, the program will retrieve information (PDF files as invoices) from the directory where I’ve formatted the file paths.
-
-
-
-
-
+-   
 **Commands to Run Code**
 
 `python home_page.py`
 
 `python -m unittest test_home_page.py`
+
+**Disclaimer: This development process utilizes AI tools (such as co-pilot) for assistance.**
+
