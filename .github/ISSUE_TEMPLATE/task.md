@@ -1,3 +1,11 @@
+---
+name: Task
+about: Use this template for general tasks
+title: "[TASK]"
+labels: task
+assignees: ''
+---
+
 ## Task Title
 [Provide a clear and concise title for the task.]
 
