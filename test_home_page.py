@@ -1,6 +1,8 @@
 import unittest
 import logging
 from home_page import PropertyApp
+import json
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,7 +56,20 @@ class TestHomePage(unittest.TestCase):
         # Verify if the default tenant is set correctly
         self.assertEqual(self.app.default_tenants["3306 Seminole Ave, Lynwood Property"], "Maria Mercedes")
 
+    def test_load_default_tenants(self):
+        # Create a mock default tenants file
+        default_tenants = {"3306 Seminole Ave, Lynwood Property": "Maria Mercedes"}
+        with open('default_tenants.json', 'w') as f:
+            json.dump(default_tenants, f)
 
+        # Load default tenants
+        loaded_tenants = self.app.load_default_tenants()
+
+        # Verify if the default tenants are loaded correctly
+        self.assertEqual(loaded_tenants, default_tenants)
+
+        # Clean up
+        os.remove('default_tenants.json')
 
 if __name__ == '__main__':
     unittest.main()
