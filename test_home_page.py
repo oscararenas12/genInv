@@ -68,8 +68,5 @@ class TestHomePage(unittest.TestCase):
         # Verify if the default tenants are loaded correctly
         self.assertEqual(loaded_tenants, default_tenants)
 
-        # Clean up
-        os.remove('default_tenants.json')
-
 if __name__ == '__main__':
     unittest.main()
