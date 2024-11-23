@@ -40,6 +40,3 @@ Lastly, he sees that the date is automatically set for the next billing period, 
 `python home_page.py`
 
 `python -m unittest test_home_page.py`
-
-**Disclaimer: This development process utilizes AI tools (such as co-pilot) for assistance.**
-
