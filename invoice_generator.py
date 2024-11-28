@@ -4,6 +4,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io
 import os
+import json
 
 def fill_invoice(input_pdf, output_pdf, data):
     try:
@@ -85,54 +86,47 @@ def fill_invoice(input_pdf, output_pdf, data):
         print(f"Error: {str(e)}")
         return False
 
-# Example data
-sample_data = {
-    'date': '2024-11-27',
-    'invoice_no': '27',
-    'property_address1': '10974 Lou Dillon Ave',
-    'property_address2': 'Anytown, USA',
-    'from_company': 'Property Management LLC',
-    'from_email': 'john@property.com',
-    'from_phone': 'Questions: (555) 123-4567',
-    'to_renter': 'Helen Tenant',
-    'to_address': '789 Resident St',
-    'to_city_state': 'Townsburg, ST',
-    'to_zip': '67890',
-    'to_phone': '(555) 987-6543',
-    'to_email': 'jane@tenant.com',
-    'line_items': [
-        ('Monthly Rent - December 2024', '$1500.00'),
-        ('Utilities', '$200.00'),
-        ('Parking', '$100.00')
-    ],
-    'subtotal': '$1800.00',
-    'discount': '$0.00',
-    'fees': '$50.00',
-    'tax': '$0.00',
-    'total': '$1850.00'
-}
-
 def main():
-    
     # Get the directory of the script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Set input and output paths
-    input_pdf = os.path.join(script_dir, 'input.pdf')
-    output_pdf = os.path.join(script_dir, 'filled_invoice.pdf')
+    # Set input paths
+    input_pdf = os.path.join(script_dir, 'MasterInvoice.pdf')
+    json_file = os.path.join(script_dir, 'properties_data.json')
     
-    # Check if input file exists
+    # Check if input files exist
     if not os.path.exists(input_pdf):
         print(f"Error: Input PDF file not found at {input_pdf}")
         print("Please ensure your template PDF is named 'input.pdf' and is in the same directory as this script.")
         return
+        
+    if not os.path.exists(json_file):
+        print(f"Error: JSON file not found at {json_file}")
+        print("Please ensure properties_data.json is in the same directory as this script.")
+        return
     
-    # Fill the invoice
-    print("Filling invoice...")
-    if fill_invoice(input_pdf, output_pdf, sample_data):
-        print(f"Success! Filled invoice saved as: {output_pdf}")
-    else:
-        print("Failed to fill invoice. Please check the error message above.")
+    # Read JSON data
+    try:
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+        
+        # Process all properties in the list
+        for property_data in data['properties']:
+            # Generate output filename using invoice number
+            output_filename = f"invoice_{property_data['invoice_no']}.pdf"
+            output_pdf = os.path.join(script_dir, output_filename)
+            
+            # Fill the invoice
+            print(f"Creating invoice {property_data['invoice_no']} for {property_data['to_renter']}...")
+            if fill_invoice(input_pdf, output_pdf, property_data):
+                print(f"Success! Filled invoice saved as: {output_pdf}")
+            else:
+                print(f"Failed to create invoice {property_data['invoice_no']}. Check the error message above.")
+            
+        print("\nAll invoices have been generated!")
+            
+    except Exception as e:
+        print(f"Error processing JSON data: {str(e)}")
 
 if __name__ == "__main__":
     main()
