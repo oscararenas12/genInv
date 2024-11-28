@@ -3,3 +3,4 @@ __pycache__
 .vscode
 .github/ISSUE_TEMPLATE
 default_tenants.json
+properties_data.json
