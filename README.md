@@ -43,4 +43,6 @@ Lastly, he sees that the date is automatically set for the next billing period, 
 
 `python home_page.py`
 
+`python invoice_generator.py`
+
 `python -m unittest test_home_page.py`
