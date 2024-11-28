@@ -6,6 +6,10 @@
 
 `pip install customtkinter`
 
+`pip install PyPDF2`
+
+`pip install canvas`
+
 **General Test Driven Development Story approach:**
 
 Oscar opens a new desktop app called genInv, designed to automatically generate invoices without manual input. The app presents him with three key options: selecting a property, a tenant, and a billing date. 
