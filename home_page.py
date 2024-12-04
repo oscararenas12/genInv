@@ -5,6 +5,8 @@ import customtkinter as ctk
 import os
 import json
 import logging
+from datetime import datetime
+from invoice_generator import fill_invoice
 
 # Main directory where property folders are stored
 invoice_directory = r"C:\Users\oscar\OneDrive\Oscar\Properties"
@@ -28,6 +30,9 @@ class PropertyApp(ctk.CTk):
 
         # Load default tenants from JSON file
         self.default_tenants = self.load_default_tenants()
+        
+        # Add path for invoice template
+        self.template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Invoice Master.pdf')
 
         # Configure window
         self.title("GenInv") 
@@ -46,15 +51,15 @@ class PropertyApp(ctk.CTk):
         main_frame.grid_columnconfigure(0, weight=1)  # Property column
         main_frame.grid_columnconfigure(1, weight=1)  # Calendar column
 
-        # Property selection - reduced padding between label and combo
+        # Property selection
         property_label = ctk.CTkLabel(main_frame, text="Select Property", font=("Arial", 16))
-        property_label.grid(row=0, column=0, padx=20, pady=(15, 0), sticky="w")  # Removed bottom padding
+        property_label.grid(row=0, column=0, padx=20, pady=(15, 0), sticky="w")
         
         self.property_combo = ctk.CTkComboBox(main_frame, values=property_names, command=self.on_property_select)
         self.property_combo.set("Select Property")
-        self.property_combo.grid(row=1, column=0, padx=20, pady=(0, 15), sticky="ew")  # Reduced top padding
+        self.property_combo.grid(row=1, column=0, padx=20, pady=(0, 15), sticky="ew")
 
-        # Tenant selection - keeping original spacing
+        # Tenant selection
         tenant_label = ctk.CTkLabel(main_frame, text="Select Tenant", font=("Arial", 16))
         tenant_label.grid(row=2, column=0, padx=20, pady=(10,5), sticky="w")
         
@@ -65,7 +70,7 @@ class PropertyApp(ctk.CTk):
         set_default_btn = ctk.CTkButton(main_frame, text="Set Default Tenant", command=self.set_default_tenant)
         set_default_btn.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
 
-        # Message label to display errors or success
+        # Message label
         self.message_label = ctk.CTkLabel(main_frame, text="", font=("Arial", 12))
         self.message_label.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
 
@@ -82,7 +87,7 @@ class PropertyApp(ctk.CTk):
                           showweeknumbers=False)
         self.cal.grid(row=1, column=1, rowspan=4, padx=20, pady=(0,10), sticky="nsew")
 
-        # Submit Button to submit the form
+        # Generate Button
         submit_btn = ctk.CTkButton(main_frame, text="Generate", command=self.submit)
         submit_btn.grid(row=6, column=0, columnspan=2, padx=20, pady=(10,20), sticky="ew")
 
@@ -90,45 +95,73 @@ class PropertyApp(ctk.CTk):
         self.minsize(640, 400)
 
     def load_default_tenants(self):
-        """Load default tenants from JSON file."""
         try:
             with open('default_tenants.json', 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            return {}  # Return empty dict if file not found
+            return {}
 
     def save_default_tenants(self):
-        """Save default tenants to JSON file."""
         with open('default_tenants.json', 'w') as f:
             json.dump(self.default_tenants, f, indent=4)
 
     def submit(self):
-        print("Property:", self.property_combo.get())
-        print("Tenant:", self.tenant_combo.get())
-        print("Billing Date:", self.cal.get_date())
-
-        # Log the submission details, mainly for debugging purposes
-        logging.info(f"Property: {self.property_combo.get()}")
-        logging.info(f"Tenant: {self.tenant_combo.get()}")
-        logging.info(f"Billing Date: {self.cal.get_date()}")
+        selected_property = self.property_combo.get()
+        selected_tenant = self.tenant_combo.get()
+        billing_date = self.cal.get_date()
+        
+        if selected_property == "Select Property" or selected_tenant in ["Select a property first", "Select Tenant", "No tenants found"]:
+            self.display_message("Please select both property and tenant.", "error")
+            return
+            
+        try:
+            # Load existing data
+            with open('properties_data.json', 'r') as f:
+                data = json.load(f)
+            
+            # Find matching property data
+            matching_property = None
+            for prop in data['properties']:
+                if prop['to_renter'].split(',')[0].strip() == selected_tenant.split(',')[0].strip():
+                    matching_property = prop
+                    break
+            
+            if matching_property:
+                # Update date
+                matching_property['date'] = datetime.strptime(billing_date, '%m/%d/%y').strftime('%m-%d-%Y')
+                
+                # Save updated data
+                with open('properties_data.json', 'w') as f:
+                    json.dump(data, f, indent=4)
+                
+                # Generate invoice
+                output_pdf = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                                        f"invoice_{matching_property['invoice_no']}.pdf")
+                
+                if fill_invoice(self.template_path, output_pdf, matching_property):
+                    self.display_message("Invoice generated successfully!", "success")
+                else:
+                    self.display_message("Failed to generate invoice.", "error")
+            else:
+                self.display_message("No matching tenant data found.", "error")
+                
+        except Exception as e:
+            self.display_message(f"Error: {str(e)}", "error")
+            logging.error(f"Error in submit: {str(e)}")
 
     def on_property_select(self, event=None):
-        """Handles property selection event and updates the tenant list."""
         selected_property = self.property_combo.get()
         if selected_property:
             tenant_folders = self.find_tenants(properties[selected_property])
 
             if tenant_folders:
-                # Update tenant combo box with the found tenant folders
                 self.tenant_combo.configure(values=tenant_folders)
-                # Set the default tenant if it exists
                 default_tenant = self.default_tenants.get(selected_property)
                 if default_tenant and default_tenant in tenant_folders:
                     self.tenant_combo.set(default_tenant)
                 else:
                     self.tenant_combo.set("Select Tenant")
             else:
-                # No tenants found
                 self.tenant_combo.configure(values=["No tenants found"])
                 self.tenant_combo.set("No tenants found")
                 self.display_message("No tenants found for this property.", "error")
@@ -137,7 +170,6 @@ class PropertyApp(ctk.CTk):
             self.tenant_combo.set("Select a property first")
 
     def set_default_tenant(self):
-        """Sets the currently selected tenant as the default for the selected property."""
         selected_property = self.property_combo.get()
         selected_tenant = self.tenant_combo.get()
         if selected_property == "Select Property" or not selected_property:
@@ -150,14 +182,13 @@ class PropertyApp(ctk.CTk):
             self.display_message("Default Tenant Set", "success")
 
     def find_tenants(self, property_folder):
-        """Find tenant folders in the 'tenants' subfolder of the specified property."""
         tenants = []
-        tenants_path = os.path.join(invoice_directory, property_folder, "tenants")  # Construct the full path to the 'tenants' folder
+        tenants_path = os.path.join(invoice_directory, property_folder, "tenants")
 
         if os.path.exists(tenants_path):
             for folder_name in os.listdir(tenants_path):
                 tenant_path = os.path.join(tenants_path, folder_name)
-                if os.path.isdir(tenant_path):  # Ensure it is a directory (tenant folder)
+                if os.path.isdir(tenant_path):
                     tenants.append(folder_name)
         else:
             self.display_message(f"The 'tenants' folder for {property_folder} was not found.", "error")
@@ -165,7 +196,6 @@ class PropertyApp(ctk.CTk):
         return tenants
 
     def display_message(self, message, message_type):
-        """Displays a message below the 'Set Default Tenant' button."""
         if message_type == "error":
             self.message_label.configure(text=message, text_color="red")
         elif message_type == "success":
