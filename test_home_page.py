@@ -59,9 +59,15 @@ class TestHomePage(unittest.TestCase):
             "properties": [
                 {
                     "date": "09-13-2024",
-                    "invoice_no": "28",
+                    "invoice_no": [28],
                     "to_renter": "Hector Garcia",
-                    "property_address1": "3175 Seminole Ave"
+                    "property_address1": "3175 Seminole Ave",
+                    "total": "$1,368.00",  # Added total field
+                    "line_items": [  # Added line items
+                        ["Monthly Rent", "$1,312.50"],
+                        ["Water", "$37.50"],
+                        ["Internet", "$18.00"]
+                    ]
                 }
             ]
         }
@@ -123,9 +129,10 @@ class TestHomePage(unittest.TestCase):
         self.assertNotEqual(tenants, ["No tenants found"])
 
     @patch('home_page.fill_invoice')
+    @patch('json.dump')
     @patch('os.path.exists')
     @patch('os.listdir')
-    def test_submit_button_functionality(self, mock_listdir, mock_exists, mock_fill_invoice):
+    def test_submit_button_functionality(self, mock_listdir, mock_exists, mock_json_dump, mock_fill_invoice):
         """Test if the submit button works correctly"""
         # Mock the fill_invoice function to return True
         mock_fill_invoice.return_value = True
@@ -139,20 +146,22 @@ class TestHomePage(unittest.TestCase):
         test_tenant = "Hector Garcia"
         test_date = "9/13/24"
 
-        # Simulate selections
-        self.app.property_combo.set(test_property)
-        self.app.on_property_select()
-        self.app.tenant_combo.set(test_tenant)
-        self.app.cal._selection = test_date
+        # Set up the mock to return our test data for json.load
+        with patch('json.load', return_value=self.mock_data):
+            # Simulate selections
+            self.app.property_combo.set(test_property)
+            self.app.on_property_select()
+            self.app.tenant_combo.set(test_tenant)
+            self.app.cal._selection = test_date
 
-        # Call submit
-        self.app.submit()
-        
-        # Verify success message
-        self.assertEqual(
-            self.app.message_label.cget("text"),
-            "Invoice generated successfully!"
-        )
+            # Call submit
+            self.app.submit()
+            
+            # Verify success message
+            self.assertEqual(
+                self.app.message_label.cget("text"),
+                "Invoice 29 generated successfully!"  # Updated to include invoice number
+            )
 
     @patch('json.dump')
     def test_set_default_tenant_success(self, mock_json_dump):
